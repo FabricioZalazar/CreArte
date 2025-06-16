@@ -1,0 +1,22 @@
+extends layout
+
+block content
+  .container.py-5
+    h2.text-center.mb-4 Crear cuenta
+    form(method="POST", action="/registro").mx-auto(style="max-width: 400px;")
+      .mb-3
+        label.form-label(for="nombre") Nombre
+        input.form-control(type="text", name="nombre", required=true)
+      .mb-3
+        label.form-label(for="apellido") Apellido
+        input.form-control(type="text", name="apellido", required=true)
+      .mb-3
+        label.form-label(for="email") Correo electrónico
+        input.form-control(type="email", name="email", required=true)
+      .mb-3
+        label.form-label(for="password") Contraseña
+        input.form-control(type="password", name="password", required=true)
+      button.btn.btn-success.w-100(type="submit") Registrarse
+      p.text-center.mt-3
+        | ¿Ya tenés cuenta?
+        a(href="/login") Iniciar sesión

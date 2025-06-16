@@ -1,0 +1,139 @@
+extends layout
+
+block content
+  nav.navbar.navbar-expand-lg.navbar-light.bg-light.px-4
+    a.navbar-brand(href="#") Artesanos.com
+    .ms-auto
+      a.btn.btn-outline-danger(href="/logout") Cerrar sesión
+
+  .container.py-5
+    h2.mb-4 Hola, #{usuario.nombre} #{usuario.apellido}
+    p Email: #{usuario.email}
+
+    if usuario.intereses
+      p Intereses: #{usuario.intereses}
+
+    if usuario.antecedentes
+      p Antecedentes: #{usuario.antecedentes}
+
+    hr
+    // Botón que abre el modal de crear álbum
+    button.btn.btn-primary.mb-3(type="button", data-bs-toggle="modal", data-bs-target="#crearAlbumModal") Crear Álbum
+    hr
+
+    h1 Álbumes de #{usuario.nombre}
+
+    .row
+      if albumes && albumes.length
+        each album in albumes
+          .col-md-4.mb-3
+            .card
+              if album.portada
+                img.card-img-top(src=album.portada, alt="Portada", style="max-height: 200px; object-fit: cover;")
+              .card-body
+                h5.card-title= album.titulo
+                p.card-text= album.descripcion
+                p Modo: #{album.modo}
+                if album.destacado
+                  span.badge.bg-warning.text-dark Destacado
+                form.mt-2.me-2.d-inline(action="/imagenes/subir", method="GET")
+                  input(type="hidden", name="idAlbum", value=album.idAlbum)
+                  button.btn.btn-sm.btn-secondary(type="submit") Subir imágenes
+                form.mt-2.me-2.d-inline
+                  input(type="hidden", name="idAlbum", value=album.idAlbum)
+                  button.btn.btn-sm.btn-secondary.editar-btn(type="button", 
+                    data-id=album.idAlbum, 
+                    data-titulo=album.titulo,
+                    data-descripcion=album.descripcion,
+                    data-modo=album.modo,
+                    data-destacado=album.destacado) Editar álbum
+                form.mt-2.me-2.d-inline(action="/album/borrar", method="GET")
+                  input(type="hidden", name="idAlbum", value=album.idAlbum)
+                  button.btn.btn-sm.btn-danger(type="submit") Borrar Album
+
+      else 
+        .col-12
+          p.text-muted No tenés álbumes todavía.
+
+  // Modal: Crear nuevo álbum
+  .modal.fade(id="crearAlbumModal", tabindex="-1", aria-labelledby="crearAlbumModalLabel", aria-hidden="true")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title(id="crearAlbumModalLabel") Crear nuevo álbum
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Cerrar")
+        .modal-body
+          form(action="/album/crear", method="POST", enctype="multipart/form-data")
+            .mb-3
+              label.form-label(for="titulo") Título
+              input.form-control(type="text", id="titulo", name="titulo", required)
+            .mb-3
+              label.form-label(for="descripcion") Descripción
+              textarea.form-control(id="descripcion", name="descripcion", rows="3")
+            .mb-3
+              label.form-label(for="modo") Modo
+              select.form-select(id="modo", name="modo")
+                option(value="modoVitrina") Vitrina
+                option(value="privado") Privado
+            .mb-3
+              .form-check
+                input.form-check-input(type="checkbox", id="destacado", name="destacado")
+                label.form-check-label(for="destacado") ¿Destacado?
+            .modal-footer
+              button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancelar
+              button.btn.btn-primary(type="submit") Crear álbum
+
+  .modal.fade(id="subirImagenesModal", tabindex="-1", aria-labelledby="subirImagenesLabel", aria-hidden="true")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title(id="subirImagenesLabel") Subir imágenes
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Cerrar")
+        .modal-body
+          form#formSubirImagenes(action="/imagenes/subir", method="POST", enctype="multipart/form-data")
+            input(type="hidden", name="idAlbum", id="idAlbumInput")
+
+            .mb-3
+              label.form-label(for="caption") Caption
+              input.form-control(type="text", id="caption", name="caption") 
+            .mb-3
+              label.form-label(for="imagenes") Seleccioná imágenes
+              input.form-control(type="file", name="imagenes", accept="image/*", multiple required)
+
+            .mb-3
+              label.form-label Seleccioná cuál es la portada
+              ul#previewImagenes.list-unstyled
+
+            .modal-footer
+              button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancelar
+              button.btn.btn-primary(type="submit") Subir imágenes
+
+
+  // Modal: Editar nuevo álbum
+  .modal.fade(id="editarAlbumModal", tabindex="-1", aria-labelledby="editarAlbumModalLabel", aria-hidden="true")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title(id="editarAlbumModalLabel") Editar álbum
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Cerrar")
+        .modal-body
+          form(id="formEditarAlbum", action="/album/editar", method="POST")
+            input(type="hidden", id="editarIdAlbumInput", name="idAlbum")
+            .mb-3
+              label.form-label(for="titulo") Título
+              input.form-control(type="text", id="titulo", name="titulo", required)
+            .mb-3
+              label.form-label(for="descripcion") Descripción
+              textarea.form-control(id="descripcion", name="descripcion", rows="3")
+            .mb-3
+              label.form-label(for="modo") Modo
+              select.form-select(id="modo", name="modo")
+                option(value="modoVitrina") Vitrina
+                option(value="privado") Privado
+            .mb-3
+              .form-check
+                input.form-check-input(type="checkbox", id="destacado", name="destacado")
+                label.form-check-label(for="destacado") ¿Destacado?
+            .modal-footer
+              button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancelar
+              button.btn.btn-primary(type="submit") Guardar cambios

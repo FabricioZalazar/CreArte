@@ -1,0 +1,33 @@
+extends layout
+
+block content
+    nav.navbar.navbar-expand-lg.navbar-light.bg-light.px-4
+      a.navbar-brand(href="#") Artesanos.com
+      .ms-auto
+        a.btn.btn-outline-danger(href="/logout") Cerrar sesión
+
+    .container.py-5
+      h2.mb-4 Hola, #{usuario.nombre} #{usuario.apellido}
+      p Email: #{usuario.email}
+
+      if usuario.intereses
+        p Intereses: #{usuario.intereses}
+
+      if usuario.antecedentes
+        p Antecedentes: #{usuario.antecedentes}
+
+      hr
+        button Seguir 
+      hr
+      h3.title Mis Albumes 
+       .row
+    each album in albumes
+      .col-md-4.mb-3
+        .card
+          .card-body
+            h5.card-title= album.titulo
+            p.card-text= album.descripcion
+            p Modo: #{album.modo}
+            if album.destacado
+              span.badge.bg-warning.text-dark Destacado
+            a.btn.btn-primary(href=`/album/${album.id}`) Ver álbum

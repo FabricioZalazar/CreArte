@@ -1,5 +1,7 @@
-import  Usuario  from '../models/usuarioModel.js';
+import Usuario from '../models/usuarioModel.js';
 import bcrypt from 'bcryptjs';
+import album from '../models/albumModel.js';
+import {albumController} from '../controllers/albumController.js';
 
 const registrar = async (req, res) => {
   const { nombre, apellido, email, password } = req.body;
@@ -17,43 +19,34 @@ const registrar = async (req, res) => {
   };
 
   await Usuario.crear(nuevoUsuario);
-  res.redirect('/login.html');
+  res.render('login');
 }
+
+const mostrarPerfil = async (req, res) => {
+  const usuario = req.session.usuario
+  const albumes = await album.listarPorUsuario(usuario.idUsuario);
+  res.render('perfil', { usuario, albumes });
+};
 
 const login = async (req, res) => {
   const { email, password } = req.body;
   const usuario = await Usuario.buscarPorEmail(email);
-
   if (!usuario) return res.status(401).send('Email incorrecto');
   const esValido = await bcrypt.compare(password, usuario.contraseña);
   if (!esValido) return res.status(401).send('Contraseña incorrecta');
 
-  req.session.usuario = {
-    id: usuario.idUsuario,
-    nombre: usuario.nombre,
-    apellido: usuario.apellido
-  };
+  req.session.usuario = usuario;
 
-  res.redirect('/perfil.html');
+  const albumes = await album.listarPorUsuario(usuario.idUsuario);
+  res.render('perfil', { usuario: req.session.usuario, albumes });
 };
 
 const logout = (req, res) => {
   req.session.destroy(() => {
-    res.redirect('/login.html');
+    res.render('login');
   });
 };
 
-const mostrarPerfil = async (req, res) => {
-  try {
-    const id = req.session.usuario.id;
-    const usuario = await Usuario.buscarPorId(id);
-    if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
-    res.json({ usuario });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error interno del servidor' });
-  }
-};
 
 export const usuarioController = {
   registrar,
