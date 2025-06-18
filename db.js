@@ -11,7 +11,7 @@ import mysql from 'mysql2'
 
  const connection = mysql.createConnection({
   host: 'mysql-fabriciozalazar.alwaysdata.net',
-  user: '415904_fabriz',
+  user: '415904',
   password: '123456789Aeio',
   database: 'fabriciozalazar_bd_artesanos_labii'
 
