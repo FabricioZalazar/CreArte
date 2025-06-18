@@ -6,66 +6,10 @@ html
     meta(name='viewport', content='width=device-width, initial-scale=1')
     link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css')
     script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js')
-    script(src='/js/script.js')
+    script(src='/js/script.js', defer)
   body.bg-white
     block content
 
-  script.
-     document.addEventListener('DOMContentLoaded', () => {
-     ventanaFlotante('form[action="/imagenes/subir"]', 'subirImagenesModal');
-     ventanaFlotante('form[action="/album/borrar"]', 'borrarAlbumModal');
-     ventanaFlotante('form[action="/album/editar"]', 'editarAlbumModal');
-     ventanaEditarAlbum();
-     const input = document.querySelector('input[name="imagenes"]');
-     const preview = document.getElementById('previewImagenes');
-     if (input && preview) {
-       input.addEventListener('change', () => {
-         preview.innerHTML = '';
-         Array.from(input.files).forEach((file, index) => {
-           const reader = new FileReader();
-           reader.onload = function (e) {
-             const li = document.createElement('li');
-             li.classList.add('mb-2');
-             li.innerHTML = `
-               <img src="${e.target.result}" style="max-width: 100px; max-height: 100px;" class="me-2" />
-               <input type="radio" name="portada" value="${index}" id="portada-${index}" required />
-               <label for="portada-${index}">Usar como portada</label>
-             `;
-             preview.appendChild(li);
-           };
-           reader.readAsDataURL(file);
-         });
-       });
-     }
-
-     // Enviar formulario del modal
-     document.getElementById('formSubirImagenes').addEventListener('submit', function (e) {
-       e.preventDefault();
-       const form = document.getElementById('formSubirImagenes');
-       const formData = new FormData(form);
-       fetch(form.action, {
-         method: form.method,
-         body: formData
-       })
-         .then(res => {
-           if (res.ok) {
-             alert('Imágenes subidas correctamente');
-             const modalElement = document.getElementById('subirImagenesModal');
-             const modalInstance = bootstrap.Modal.getInstance(modalElement);
-             if (modalInstance) modalInstance.hide();
-             form.reset();
-             document.getElementById('previewImagenes').innerHTML = '';
-           } else {
-             alert('Error al subir imágenes');
-           }
-         })
-         .catch(err => {
-           console.error(err);
-           alert('Error al enviar el formulario');
-         });
-     });
-   });
- 
 
 
 

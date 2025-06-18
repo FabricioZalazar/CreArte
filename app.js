@@ -14,15 +14,15 @@ app.use(session({
 }));
 
 app.use(express.urlencoded({ extended: true }));
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use(express.json());
+
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views')); 
-
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static('public'));
 
 
 app.use('/', router);
@@ -45,7 +45,6 @@ app.get('/registro', (req, res) => {
 app.get('/crear', (req, res) => {
  res.render('registro', { title: 'Registro - Artesanos.com' });
 });
-
 
 
 app.listen(PORT, () => {

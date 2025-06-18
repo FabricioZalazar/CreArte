@@ -1,0 +1,139 @@
+extends layout
+
+block content
+  nav.navbar.navbar-expand-lg.navbar-light.bg-light.px-4
+    a.navbar-brand(href="/perfil") Artesanos.com
+
+    form.d-flex.ms-auto(action="/buscar", method="GET")
+      input.form-control.me-2(type="search", name="q", placeholder="Buscar usuarios", aria-label="Buscar")
+      button.btn.btn-outline-success(type="submit") Buscar
+
+    a.btn.btn-outline-danger.ms-3(href="/logout") Cerrar sesión
+
+  .container.py-5
+    h2.mb-4 #{usuario.nombre} #{usuario.apellido}
+    
+
+    if usuario.idUsuario !== session.usuario.idUsuario
+      if yaLoSigo
+        form.d-inline(action="/usuario/dejar-seguir", method="POST")
+          input(type="hidden", name="idSeguido", value=usuario.idUsuario)
+          button.btn.btn-warning.mb-3(type="submit") Dejar de seguir
+      else
+        form.d-inline(action="/usuario/seguir", method="POST")
+          input(type="hidden", name="idSeguido", value=usuario.idUsuario)
+          button.btn.btn-primary.mb-3(type="submit") Seguir
+
+    p
+        a(href="#modalSeguidores", data-bs-toggle="modal") Seguidores: #{usuario.seguidores.length || 0}
+        |  |
+        a(href="#modalSeguidos", data-bs-toggle="modal") Seguidos: #{usuario.seguidos.length || 0}
+
+    p Email: #{usuario.email}
+
+    hr
+
+    h1 Álbumes de #{usuario.nombre}
+
+    .row
+      if albumes && albumes.length
+        each album in albumes
+          .col-md-4.mb-3
+            .card
+              if album.portadaRuta
+                img.card-img-top(src=album.portadaRuta, alt="Portada", style="max-height: 200px; object-fit: cover;")
+              else
+                img.card-img-top(src="/img/default.jpg", alt="Sin portada", style="max-height: 200px; object-fit: cover;")
+
+              .card-body
+                h5.card-title= album.titulo
+                p.card-text= album.descripcion
+                p Modo: #{album.modo}
+                if album.destacado
+                  span.badge.bg-warning.text-dark Destacado
+                button.btn.btn-sm.btn-info.btnDetalle(type="button", data-bs-toggle="modal", data-bs-target="#detalleAlbumModal", data-id=album.idAlbum) Ver detalles
+      else
+        .col-12
+          p.text-muted Este usuario no tiene álbumes aún.
+
+  // Modal Seguidores
+  .modal.fade#modalSeguidores(tabindex="-1", aria-labelledby="modalSeguidoresLabel", aria-hidden="true")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title#modalSeguidoresLabel Seguidores de #{usuario.nombre}
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Cerrar")
+        .modal-body
+          if usuario.seguidores.length
+            ul.list-group
+              each seguidor in usuario.seguidores
+                li.list-group-item
+                  a(href=`/usuario/${seguidor.idUsuario}`)= seguidor.nombre + ' ' + seguidor.apellido
+          else
+            p.text-muted No tiene seguidores aún.
+
+  // Modal Seguidos
+  .modal.fade#modalSeguidos(tabindex="-1", aria-labelledby="modalSeguidosLabel", aria-hidden="true")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5.modal-title#modalSeguidosLabel Seguidos por #{usuario.nombre}
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Cerrar")
+        .modal-body
+          if usuario.seguidos.length
+            ul.list-group
+              each seguido in usuario.seguidos
+                li.list-group-item
+                  a(href=`/usuario/${seguido.idUsuario}`)= seguido.nombre + ' ' + seguido.apellido
+          else
+            p.text-muted No sigue a nadie aún.
+
+  div.modal.fade(id="detalleAlbumModal", tabindex="-1", aria-labelledby="detalleAlbumLabel", aria-hidden="true")
+      .modal-dialog.modal-xl
+        .modal-content
+          .modal-header
+            h5.modal-title(id="detalleAlbumLabel") Detalle del Álbum
+            button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Cerrar")
+          .modal-body
+            .container-fluid
+              .row
+                //- Lado izquierdo: carrusel de imágenes
+                .col-md-6
+                  #carouselAlbum.carousel.slide(data-bs-ride="carousel")
+                    .carousel-inner#carouselInner
+                      //- Aquí se insertan las imágenes con JS
+                    button.carousel-control-prev(type="button", data-bs-target="#carouselAlbum", data-bs-slide="prev")
+                      span.carousel-control-prev-icon(aria-hidden="true")
+                      span.visually-hidden Anterior
+                    button.carousel-control-next(type="button", data-bs-target="#carouselAlbum", data-bs-slide="next")
+                      span.carousel-control-next-icon(aria-hidden="true")
+                      span.visually-hidden Siguiente
+
+                //- Lado derecho: info álbum + info imagen + comentarios + formulario comentar
+                .col-md-6.d-flex.flex-column.justify-content-between
+                  //- Info del álbum
+                  .mb-3
+                    p#infoDescripcionAlbum Descripción del álbum
+                    p#infoModoAlbum Modo: Público
+
+                  hr
+
+                  //- Info imagen seleccionada
+                  .mb-3
+                    h5 Descripcion de Imagen
+                    p#infoCaptionImagen
+
+                  hr
+
+                  //- Comentarios
+                  .mb-3.flex-grow-1.overflow-auto(style="max-height: 300px;")
+                    h5 Comentarios
+                    #comentariosContainer
+                      //- Aquí se insertan los comentarios con JS
+
+                  //- Formulario para nuevo comentario
+                  form#formComentario
+                    input(type="hidden", id="idImagen", name="idImagen")
+                    textarea.form-control(name="txt", id="txtComentario", rows="3", placeholder="Escribí tu comentario...")
+                    button.btn.btn-primary.mt-2(type="submit") Enviar
+

@@ -2,12 +2,22 @@ extends layout
 
 block content
   nav.navbar.navbar-expand-lg.navbar-light.bg-light.px-4
-    a.navbar-brand(href="#") Artesanos.com
+    a.navbar-brand(href="/perfil") Artesanos.com
     .ms-auto
+      button.btn.btn-outline-primary.me-2(type="button", data-bs-toggle="modal", data-bs-target="#modalBuscarUsuario")
+        i.fas.fa-search
+        |  Buscar
       a.btn.btn-outline-danger(href="/logout") Cerrar sesión
-
   .container.py-5
     h2.mb-4 Hola, #{usuario.nombre} #{usuario.apellido}
+    p
+      | Seguidores: 
+      a(href="#", data-bs-toggle="modal", data-bs-target="#modalSeguidores") #{usuario.seguidores ? usuario.seguidores.length : 0}
+        button.btn.btn-link(data-bs-toggle="modal", data-bs-target="#modalSeguidores") Ver seguidores
+      |  | Seguidos: 
+      a(href="#", data-bs-toggle="modal", data-bs-target="#modalSeguidos") #{usuario.seguidos ? usuario.seguidos.length : 0}
+         button.btn.btn-link(data-bs-toggle="modal", data-bs-target="#modalSeguidos") Ver seguidos
+
     p Email: #{usuario.email}
 
     if usuario.intereses
@@ -17,7 +27,7 @@ block content
       p Antecedentes: #{usuario.antecedentes}
 
     hr
-    // Botón que abre el modal de crear álbum
+
     button.btn.btn-primary.mb-3(type="button", data-bs-toggle="modal", data-bs-target="#crearAlbumModal") Crear Álbum
     hr
 
@@ -28,33 +38,28 @@ block content
         each album in albumes
           .col-md-4.mb-3
             .card
-              if album.portada
-                img.card-img-top(src=album.portada, alt="Portada", style="max-height: 200px; object-fit: cover;")
+              if album.portadaRuta
+                img.card-img-top(src=album.portadaRuta, alt="Portada", style="max-height: 200px; object-fit: cover;")
+              else
+                img.card-img-top(src="/img/default.jpg", alt="Sin portada", style="max-height: 200px; object-fit: cover;")
+
               .card-body
                 h5.card-title= album.titulo
                 p.card-text= album.descripcion
                 p Modo: #{album.modo}
                 if album.destacado
                   span.badge.bg-warning.text-dark Destacado
-                form.mt-2.me-2.d-inline(action="/imagenes/subir", method="GET")
+
+                button.btn.btn-sm.m-2.btn-info.btnDetalle(type="button",data-bs-toggle="modal", data-bs-target="#detalleAlbumModal", data-id=album.idAlbum) Ver detalles
+
+                form.mt-2.me-2.d-inline(action="/album/borrar", method="POST")
                   input(type="hidden", name="idAlbum", value=album.idAlbum)
-                  button.btn.btn-sm.btn-secondary(type="submit") Subir imágenes
-                form.mt-2.me-2.d-inline
-                  input(type="hidden", name="idAlbum", value=album.idAlbum)
-                  button.btn.btn-sm.btn-secondary.editar-btn(type="button", 
-                    data-id=album.idAlbum, 
-                    data-titulo=album.titulo,
-                    data-descripcion=album.descripcion,
-                    data-modo=album.modo,
-                    data-destacado=album.destacado) Editar álbum
-                form.mt-2.me-2.d-inline(action="/album/borrar", method="GET")
-                  input(type="hidden", name="idAlbum", value=album.idAlbum)
-                  button.btn.btn-sm.btn-danger(type="submit") Borrar Album
+                  button.btn.btn-sm.m-2.btn-danger(type="submit") Borrar Álbum
 
       else 
         .col-12
           p.text-muted No tenés álbumes todavía.
-
+          
   // Modal: Crear nuevo álbum
   .modal.fade(id="crearAlbumModal", tabindex="-1", aria-labelledby="crearAlbumModalLabel", aria-hidden="true")
     .modal-dialog
@@ -63,7 +68,7 @@ block content
           h5.modal-title(id="crearAlbumModalLabel") Crear nuevo álbum
           button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Cerrar")
         .modal-body
-          form(action="/album/crear", method="POST", enctype="multipart/form-data")
+          form#formCrearAlbum(action="/album/crear", method="POST", enctype="multipart/form-data")
             .mb-3
               label.form-label(for="titulo") Título
               input.form-control(type="text", id="titulo", name="titulo", required)
@@ -79,61 +84,118 @@ block content
               .form-check
                 input.form-check-input(type="checkbox", id="destacado", name="destacado")
                 label.form-check-label(for="destacado") ¿Destacado?
+
+            .mb-3
+              label.form-label(for="imagenes") Seleccioná imágenes
+              input.form-control(type="file", id="imagenes", name="imagenes", accept="image/*", multiple required)
+
+            .mb-3
+              label.form-label Vista previa de imágenes
+              ul#previewImagenes.list-unstyled.d-flex.flex-wrap.gap-2
+
+            .mb-3
+              label.form-label Imagen de portada seleccionada:
+              img#imgPortadaSeleccionada(src="", alt="Portada", style="width: 150px; border: 2px solid #007bff; border-radius: 8px; display: none;")
+              input(type="hidden", id="imagenPortada", name="imagenPortada")
+
+
             .modal-footer
               button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancelar
               button.btn.btn-primary(type="submit") Crear álbum
 
-  .modal.fade(id="subirImagenesModal", tabindex="-1", aria-labelledby="subirImagenesLabel", aria-hidden="true")
+
+  div.modal.fade(id="detalleAlbumModal", tabindex="-1", aria-labelledby="detalleAlbumLabel", aria-hidden="true")
+      .modal-dialog.modal-xl
+        .modal-content
+          .modal-header
+            h5.modal-title(id="detalleAlbumLabel") Detalle del Álbum
+            button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Cerrar")
+          .modal-body
+            .container-fluid
+              .row
+                //- Lado izquierdo: carrusel de imágenes
+                .col-md-6
+                  #carouselAlbum.carousel.slide(data-bs-ride="carousel")
+                    .carousel-inner#carouselInner
+                      //- Aquí se insertan las imágenes con JS
+                    button.carousel-control-prev(type="button", data-bs-target="#carouselAlbum", data-bs-slide="prev")
+                      span.carousel-control-prev-icon(aria-hidden="true")
+                      span.visually-hidden Anterior
+                    button.carousel-control-next(type="button", data-bs-target="#carouselAlbum", data-bs-slide="next")
+                      span.carousel-control-next-icon(aria-hidden="true")
+                      span.visually-hidden Siguiente
+
+                //- Lado derecho: info álbum + info imagen + comentarios + formulario comentar
+                .col-md-6.d-flex.flex-column.justify-content-between
+                  //- Info del álbum
+                  .mb-3
+                    p#infoDescripcionAlbum Descripción del álbum
+                    p#infoModoAlbum Modo: Público
+
+                  hr
+
+                  //- Info imagen seleccionada
+                  .mb-3
+                    h5 Descripcion de Imagen
+                    p#infoCaptionImagen
+
+                  hr
+
+                  //- Comentarios
+                  .mb-3.flex-grow-1.overflow-auto(style="max-height: 300px;")
+                    h5 Comentarios
+                    #comentariosContainer
+                      //- Aquí se insertan los comentarios con JS
+
+                  //- Formulario para nuevo comentario
+                  form#formComentario
+                    input(type="hidden", id="idImagen", name="idImagen")
+                    textarea.form-control(name="txt", id="txtComentario", rows="3", placeholder="Escribí tu comentario...")
+                    button.btn.btn-primary.mt-2(type="submit") Enviar
+
+
+ 
+  .modal.fade(id="modalSeguidores", tabindex="-1", aria-labelledby="modalSeguidoresLabel", aria-hidden="true")
     .modal-dialog
       .modal-content
         .modal-header
-          h5.modal-title(id="subirImagenesLabel") Subir imágenes
+          h5.modal-title#modalSeguidoresLabel Seguidores
           button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Cerrar")
         .modal-body
-          form#formSubirImagenes(action="/imagenes/subir", method="POST", enctype="multipart/form-data")
-            input(type="hidden", name="idAlbum", id="idAlbumInput")
+          if usuario.seguidores.length
+            ul.list-group
+              each seguidor in usuario.seguidores
+                li.list-group-item
+                  a(href=`/usuario/${seguidor.idUsuario}`) #{seguidor.nombre} #{seguidor.apellido}
+          else
+            p.text-muted No tenés seguidores aún.
 
-            .mb-3
-              label.form-label(for="caption") Caption
-              input.form-control(type="text", id="caption", name="caption") 
-            .mb-3
-              label.form-label(for="imagenes") Seleccioná imágenes
-              input.form-control(type="file", name="imagenes", accept="image/*", multiple required)
-
-            .mb-3
-              label.form-label Seleccioná cuál es la portada
-              ul#previewImagenes.list-unstyled
-
-            .modal-footer
-              button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancelar
-              button.btn.btn-primary(type="submit") Subir imágenes
-
-
-  // Modal: Editar nuevo álbum
-  .modal.fade(id="editarAlbumModal", tabindex="-1", aria-labelledby="editarAlbumModalLabel", aria-hidden="true")
+  // Modal de Seguidos
+  .modal.fade(id="modalSeguidos", tabindex="-1", aria-labelledby="modalSeguidosLabel", aria-hidden="true")
     .modal-dialog
       .modal-content
         .modal-header
-          h5.modal-title(id="editarAlbumModalLabel") Editar álbum
+          h5.modal-title#modalSeguidosLabel Seguidos
           button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Cerrar")
         .modal-body
-          form(id="formEditarAlbum", action="/album/editar", method="POST")
-            input(type="hidden", id="editarIdAlbumInput", name="idAlbum")
-            .mb-3
-              label.form-label(for="titulo") Título
-              input.form-control(type="text", id="titulo", name="titulo", required)
-            .mb-3
-              label.form-label(for="descripcion") Descripción
-              textarea.form-control(id="descripcion", name="descripcion", rows="3")
-            .mb-3
-              label.form-label(for="modo") Modo
-              select.form-select(id="modo", name="modo")
-                option(value="modoVitrina") Vitrina
-                option(value="privado") Privado
-            .mb-3
-              .form-check
-                input.form-check-input(type="checkbox", id="destacado", name="destacado")
-                label.form-check-label(for="destacado") ¿Destacado?
-            .modal-footer
-              button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancelar
-              button.btn.btn-primary(type="submit") Guardar cambios
+          if usuario.seguidos.length
+            ul.list-group
+              each seguido in usuario.seguidos
+                li.list-group-item
+                  a(href=`/usuario/${seguido.idUsuario}`) #{seguido.nombre} #{seguido.apellido}
+          else
+            p.text-muted No seguís a nadie aún.
+
+  // Modal buscar usuario
+  .modal.fade(id="modalBuscarUsuario", tabindex="-1", aria-labelledby="modalBuscarUsuarioLabel", aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+      .modal-content
+        .modal-header
+          h5.modal-title#modalBuscarUsuarioLabel Buscar usuarios
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Cerrar")
+        .modal-body
+          form#formBuscarUsuario
+            input.form-control.mb-3(type="text", id="inputBuscarUsuario", name="termino", placeholder="Nombre o apellido...", required)
+            button.btn.btn-primary.w-100(type="submit") Buscar
+          hr
+          ul#resultadoBusqueda.list-group

@@ -1,126 +1,126 @@
-import album from "../models/albumModel.js";
+import albumModel from "../models/albumModel.js";
 import imagenModel from "../models/imagenModel.js";
-import sharp from 'sharp';
-import path from 'path';
-import fs from 'fs';
+import comentarioModel from "../models/comentarioModel.js";
 
 
-const mostrarAlbumes = async (req, res) => {
-    try {
-        const idUsuario = req.params.id;
-        const datosAlbum = await album.listarPorUsuario(idUsuario);
-        if (!datosAlbum) {
-            return res.status(404).send('Usuario sin Albums');
-        }
-        res.render('usuario', { album: datosAlbum });
-    } catch (error) {
-        console.error('Error al buscar el álbum:', error);
-        res.status(500).send('Error interno del servidor');
-    }
-}
-
-const editarAlbum = async (req, res) => {
+const imagenesPorAlbum = async (req, res) => {
   try {
-    const { titulo, modo, descripcion, portada } = req.body;
-    
-    // Convertimos el checkbox destacado a booleano
-    const destacado = req.body.destacado === 'on';
-
-    const datos = { titulo, modo, descripcion, destacado, portada };
-
-    const result = await album.editar(req.body.idAlbum, datos);
-
-    if (result && result > 0) {
-      res.redirect('/perfil');
-    } else {
-      res.status(405).send('No se pudo editar el álbum');
+    const imagenes = await imagenModel.obtenerPorAlbum(req.params.id);
+    if (!imagenes || imagenes.length === 0) {
+      return res.status(404).json({ mensaje: 'Álbum sin imágenes' });
     }
+    res.json(imagenes);
   } catch (error) {
-    console.error('Error al editar el álbum:', error);
-    res.status(500).send('Error interno del servidor');
+    console.error('Error al buscar imágenes:', error);
+    res.status(500).json({ mensaje: 'Error interno del servidor' });
   }
 };
 
 
-const crearAlbum = async (req, res) => {
-    try {
-        const { titulo, descripcion, modo, destacado } = req.body;
-        const idUsuario = req.session.usuario.idUsuario;
-        const portada = null;
+const infoAlbum = async (req, res) => {
+  try {
+    const idAlbum = req.params.id;
 
-        const nuevoAlbum = await album.crear({
-            idUsuario,
-            titulo,
-            descripcion,
-            modo,
-            destacado: destacado ? 1 : 0,
-            portada
-        });
+    const album = await albumModel.buscarPorId(idAlbum);
 
-        res.redirect('/perfil');
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Error al crear álbum' + error);
+    if (!album) {
+      return res.status(404).json({ mensaje: 'Álbum no encontrado' });
     }
+
+    res.status(200).json(album);
+
+  } catch (error) {
+    console.error('Error al obtener álbum:', error);
+    res.status(500).json({ mensaje: 'Error interno del servidor' });
+  }
 };
 
-const crearImagen = async (req, res) => {
-  console.log('Entró al controlador de imágenes');
-
+const comentariosPorImagen = async (req, res) => {
   try {
-    let { idAlbum, portada, caption } = req.body;
 
-    if (caption.trim() === '') {
-    caption = null;
-}
+    const comentarios = await comentarioModel.obtenerPorImagen(req.params.id);
+    res.status(200).json(comentarios);
 
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).send('No se subieron imágenes');
-    }
+  } catch (error) {
+    console.error('Error al obtener comentarios:', error);
+    res.status(500).json({ mensaje: 'Error interno del servidor' });
+  }
+};
 
-    const imagenesProcesadas = [];
 
-    for (let i = 0; i < req.files.length; i++) {
-      const file = req.files[i];
-      const archivoOriginal = file.path;
-      const nombreFinal = Date.now() + '-' + i + '.jpg';
-      const rutaFinal = path.join('public/img', nombreFinal);
 
-      // Redimensionar y guardar la imagen optimizada
-      await sharp(archivoOriginal)
-        .resize(800)
-        .jpeg({ quality: 70 })
-        .toFile(rutaFinal);
 
-      // Eliminar el archivo temporal
-      fs.unlinkSync(archivoOriginal);
+const borrarAlbum = async (req, res) => {
+  try {
+    const { idAlbum } = req.body;
 
-      // Guardar en base de datos
-      await imagenModel.crear({
-        idAlbum: idAlbum,
-        fecha: new Date(),
-        caption: caption || '',
-        rutaImagen: '/img/' + nombreFinal,
-        status: 1,
-        esPortada: parseInt(portada) === i ? 1 : 0
-      });
+    await imagenModel.borrarPorAlbum(idAlbum);
 
-      imagenesProcesadas.push(nombreFinal);
-    }
+    await albumModel.eliminar(idAlbum);
 
-    console.log('Imágenes procesadas:', imagenesProcesadas);
     res.redirect('/perfil');
 
   } catch (error) {
-    console.error('Error al subir imágenes:', error);
-    res.status(500).send('Error al subir imágenes: ' + error.message);
+    console.error('Error al borrar el álbum:', error);
+    res.status(500).send('Error al borrar el álbum');
   }
 };
 
 
+
+const crearAlbum = async (req, res) => {
+   console.log('📥 Entró al controlador crearAlbum');
+  try {
+    const { titulo, descripcion, modo, destacado } = req.body;
+    const idUsuario = req.session.usuario.idUsuario;
+
+    const archivos = req.files;
+    const indexPortada = parseInt(req.body.imagenPortada, 10);
+    const portadaUrl = archivos[indexPortada]?.path; 
+    
+    const nuevoAlbumId = await albumModel.crear({
+      idUsuario,
+      titulo,
+      descripcion,
+      modo,
+      destacado: destacado ? 1 : 0,
+      portada: null, 
+    });
+
+    let idImagenPortada = null;
+
+    for (const archivo of archivos) {
+      const rutaImagen = archivo.path; 
+      const idImagen = await imagenModel.crear({
+        idAlbum: nuevoAlbumId,
+        fecha: new Date(),
+        caption: null,
+        rutaImagen,
+        status: 1,
+      });
+
+      if (archivo.path === portadaUrl) {
+        idImagenPortada = idImagen;
+      }
+    }
+
+    if (idImagenPortada) {
+      await albumModel.actualizarPortada(nuevoAlbumId, idImagenPortada);
+    }
+
+    res.redirect('/perfil');
+  } catch (error) {
+    console.log('Error al crear álbum:', error);
+    res.status(5000).send('Error interno del servidor'+ error);
+  }
+};
+
+
+
 export const albumController = {
-    mostrarAlbumes,
-    crearAlbum,
-    crearImagen,
-    editarAlbum
+  crearAlbum,
+  imagenesPorAlbum,
+  borrarAlbum,
+  infoAlbum,
+  comentariosPorImagen
 }
