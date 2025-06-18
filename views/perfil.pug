@@ -46,7 +46,12 @@ block content
               .card-body
                 h5.card-title= album.titulo
                 p.card-text= album.descripcion
-                p Modo: #{album.modo}
+                p
+                  | Modo: 
+                  if album.modo === 'modoVitrina'
+                    | Público
+                  else
+                    | Privado
                 if album.destacado
                   span.badge.bg-warning.text-dark Destacado
 
@@ -115,7 +120,7 @@ block content
               .row
                 //- Lado izquierdo: carrusel de imágenes
                 .col-md-6
-                  #carouselAlbum.carousel.slide(data-bs-ride="carousel")
+                  #carouselAlbum.carousel.slide
                     .carousel-inner#carouselInner
                       //- Aquí se insertan las imágenes con JS
                     button.carousel-control-prev(type="button", data-bs-target="#carouselAlbum", data-bs-slide="prev")

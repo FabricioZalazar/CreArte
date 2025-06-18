@@ -40,10 +40,10 @@ const Usuario = {
       WHERE a.idSeguido = ?
     `;
     const [rows] = await con.execute(sql, [idUsuario]);
-    return rows;  // Array con objetos {idUsuario, nombre, apellido}
+    return rows;  
   },
 
-  // Obtener seguidos (los que este usuario sigue)
+  
   obtenerSeguidos: async (idUsuario) => {
     const sql = `
       SELECT u.idUsuario, u.nombre, u.apellido
@@ -52,7 +52,7 @@ const Usuario = {
       WHERE a.idSeguidor = ?
     `;
     const [rows] = await con.execute(sql, [idUsuario]);
-    return rows; // Array con objetos {idUsuario, nombre, apellido}
+    return rows; 
   },
 
   sigue: async (usuarioActualId, otroUsuarioId) => {

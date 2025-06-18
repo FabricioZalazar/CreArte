@@ -1,6 +1,4 @@
 import con from '../db.js';
-import fs from 'fs/promises';
-import path from 'path';
 
 const crear = async ({ idAlbum, fecha, caption, rutaImagen, status }) => {
   const sql = `
