@@ -90,7 +90,10 @@ const mostrarPerfil = async (req, res) => {
     const albumes = await album.obtenerConPortada(usuario.idUsuario);
     const seguidores = await Usuario.obtenerSeguidores(usuario.idUsuario);
     const seguidos = await Usuario.obtenerSeguidos(usuario.idUsuario);
-
+    console.log(usuario)
+    console.log(seguidores)
+    console.log(seguidos)
+    console.log(albumes)
     res.render('perfil', {
       usuario: {
         ...usuario,
