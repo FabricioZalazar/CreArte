@@ -13,7 +13,7 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: 'mis-albumes',                         // Carpeta en tu cuenta
+    folder: 'mis-albumes',                      
     format: async (req, file) => file.mimetype.split('/')[1],
     public_id: (req, file) => `${Date.now()}-${file.originalname}`,
   },

@@ -102,11 +102,11 @@ block content
           .modal-body
             .container-fluid
               .row
-                //- Lado izquierdo: carrusel de imágenes
+                
                 .col-md-6
                   #carouselAlbum.carousel.slide
                     .carousel-inner#carouselInner
-                      //- Aquí se insertan las imágenes con JS
+                     
                     button.carousel-control-prev(type="button", data-bs-target="#carouselAlbum", data-bs-slide="prev")
                       span.carousel-control-prev-icon(aria-hidden="true")
                       span.visually-hidden Anterior
@@ -114,29 +114,29 @@ block content
                       span.carousel-control-next-icon(aria-hidden="true")
                       span.visually-hidden Siguiente
 
-                //- Lado derecho: info álbum + info imagen + comentarios + formulario comentar
+                
                 .col-md-6.d-flex.flex-column.justify-content-between
-                  //- Info del álbum
+                  
                   .mb-3
                     p#infoDescripcionAlbum Descripción del álbum
                     p#infoModoAlbum Modo: Público
 
                   hr
 
-                  //- Info imagen seleccionada
+                  
                   .mb-3
                     h5 Descripcion de Imagen
                     p#infoCaptionImagen
 
                   hr
 
-                  //- Comentarios
+                  
                   .mb-3.flex-grow-1.overflow-auto(style="max-height: 300px;")
                     h5 Comentarios
                     #comentariosContainer
-                      //- Aquí se insertan los comentarios con JS
+                     
 
-                  //- Formulario para nuevo comentario
+                  
                   form#formComentario
                     input(type="hidden", id="idImagen", name="idImagen")
                     textarea.form-control(name="txt", id="txtComentario", rows="3", placeholder="Escribí tu comentario...")
