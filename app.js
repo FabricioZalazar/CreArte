@@ -27,6 +27,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', router);
 
+app.get('/', (req, res) => {
+  if (!req.session.usuario) {
+    return res.render('login');
+  }
+  res.render('perfil', { usuario: req.session.usuario });
+});
+
 app.get('/perfil', (req, res) => {
   if (!req.session.usuario) {
     return res.render('login');
