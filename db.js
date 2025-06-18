@@ -7,8 +7,8 @@ import mysql from 'mysql2'
   database: 'fabriciozalazar_bd_artesanos_labii'
 
 }).promise();
-
  */
+
  const connection = mysql.createConnection({
   host: 'mysql-fabriciozalazar.alwaysdata.net',
   user: '415904',

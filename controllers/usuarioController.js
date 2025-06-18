@@ -37,13 +37,13 @@ const usuario = async (req, res) => {
 
 const mostrarPerfilAjeno = async (req, res) => {
   try {
-    const idUsuario = req.params.id; // El usuario que estás visitando
-    const usuarioLogueado = req.session.usuario; // El que está logueado
+    const idUsuario = req.params.id; 
+    const usuarioLogueado = req.session.usuario; 
 
     const usuario = await Usuario.buscarPorId(idUsuario);
     const albumes = await album.obtenerConPortada(idUsuario);
 
-    const seguidores = await Usuario.obtenerSeguidores(idUsuario); // devuelve array con nombre/apellido
+    const seguidores = await Usuario.obtenerSeguidores(idUsuario); 
     const seguidos = await Usuario.obtenerSeguidos(idUsuario);
 
     const yaLoSigo = await Usuario.sigue(usuarioLogueado.idUsuario, idUsuario);
@@ -56,7 +56,7 @@ const mostrarPerfilAjeno = async (req, res) => {
       },
       albumes,
       yaLoSigo,
-      session: req.session, // Para usar el id del logueado en el pug
+      session: req.session, 
     });
   } catch (error) {
     console.error(error);
@@ -86,7 +86,7 @@ const registrar = async (req, res) => {
 
 const mostrarPerfil = async (req, res) => {
   try {
-    const usuario = await Usuario.buscarPorId(req.session.usuario.idUsuario); // tu método para obtener datos del usuario
+    const usuario = await Usuario.buscarPorId(req.session.usuario.idUsuario); 
     const albumes = await album.obtenerConPortada(usuario.idUsuario);
     const seguidores = await Usuario.obtenerSeguidores(usuario.idUsuario);
     const seguidos = await Usuario.obtenerSeguidos(usuario.idUsuario);
