@@ -57,7 +57,6 @@ if(document.getElementById('imagenes')){
   btnDetalle.forEach(boton => {
     boton.addEventListener('click', () => {
       const albumId = boton.dataset.id;
-      console.log(albumId)
       mostrarDetalleAlbum(albumId);
     });
   });
@@ -98,7 +97,7 @@ if(document.getElementById('imagenes')){
 
 
 
-
+let listenerCarrusel = null;
 
 
 
@@ -109,7 +108,6 @@ async function mostrarDetalleAlbum(albumId) {
 
   const respuestaImagen = await fetch(`/album/${albumId}/imagenes`);
   const imagenes = await respuestaImagen.json();
-
 
   const descripcion = document.querySelector('#infoDescripcionAlbum');
   const tituloModal = document.querySelector('#detalleAlbumLabel');
@@ -123,11 +121,10 @@ async function mostrarDetalleAlbum(albumId) {
   const otras = imagenes.filter(img => img.idImg !== album.portada);
   const imagenesOrdenadas = portada ? [portada, ...otras] : imagenes;
 
-  imagenActualSeleccionada = portada;
-
+  imagenActualSeleccionada = imagenesOrdenadas[0];
 
   caption.textContent = imagenesOrdenadas[0]?.caption || '';
-  cargarComentario(imagenesOrdenadas[0]);
+  await cargarComentario(imagenesOrdenadas[0]);
 
   imagenesOrdenadas.forEach((img, index) => {
     const item = document.createElement('div');
@@ -138,43 +135,43 @@ async function mostrarDetalleAlbum(albumId) {
     carouselInner.appendChild(item);
   });
 
-
-  if (album.descripcion) {
-    descripcion.textContent = album.descripcion;
-  } else {
-    descripcion.textContent = 'Sin descripcion';
-  }
+  descripcion.textContent = album.descripcion || 'Sin descripcion';
 
   mostrarComentarios(imagenesOrdenadas);
-};
+}
 
-async function mostrarComentarios(imagenesOrdenadas) {
 
-  document.getElementById('carouselAlbum').addEventListener('slid.bs.carousel', function (event) {
+function mostrarComentarios(imagenesOrdenadas) {
+  const carrusel = document.getElementById('carouselAlbum');
+
+  if (listenerCarrusel) {
+    carrusel.removeEventListener('slid.bs.carousel', listenerCarrusel);
+  }
+
+  listenerCarrusel = function (event) {
     const index = event.to;
     const imgActual = imagenesOrdenadas[index];
     const contenedorCaption = document.querySelector('#infoCaptionImagen');
 
     contenedorCaption.textContent = imgActual?.caption || '';
-
     cargarComentario(imgActual);
-  });
+  };
 
-
+  carrusel.addEventListener('slid.bs.carousel', listenerCarrusel);
 }
 
 async function cargarComentario(imgActual) {
-  console.log('⤷ cargarComentario con idImg=', imgActual.idImg);
+
   const respuesta = await fetch(`/imagen/${imgActual.idImg}/comentarios`);
   const respuestaComentarios = await respuesta.json();
 
   const innerComentario = document.getElementById('comentariosContainer');
   imagenActualSeleccionada = imgActual;
-  innerComentario.innerHTML = '';
-  if (respuestaComentarios.length > 0) {
 
+  if (respuestaComentarios.length > 0) {
+  innerComentario.innerHTML = '';
     for (const com of respuestaComentarios) {
-   console.log(com);
+
       const respuesta = await fetch(`/usuario/info/${com.idUsuario}`);
       const usuario = await respuesta.json();
 
@@ -196,6 +193,7 @@ async function cargarComentario(imgActual) {
     };
 
   } else {
+          innerComentario.innerHTML = '';
     const div = document.createElement('div');
     div.classList.add('mb-2', 'border', 'rounded', 'p-2');
     div.innerHTML = ` <p>Sin Comentario</p>`;
