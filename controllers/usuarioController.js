@@ -39,7 +39,7 @@ const mostrarPerfilAjeno = async (req, res) => {
   try {
     const idUsuario = req.params.id; 
     const usuarioLogueado = req.session.usuario; 
-
+   
     const usuario = await Usuario.buscarPorId(idUsuario);
     const albumes = await album.obtenerConPortada(idUsuario);
 
@@ -48,7 +48,18 @@ const mostrarPerfilAjeno = async (req, res) => {
 
     const yaLoSigo = await Usuario.sigue(usuarioLogueado.idUsuario, idUsuario);
 
-    res.render('perfilUsuario', {
+
+     if(idUsuario == usuarioLogueado.idUsuario){
+      return res.render('perfil', {
+      usuario: {
+        ...usuario,
+        seguidores,
+        seguidos,
+      },
+      albumes,
+    })}
+
+    return res.render('perfilUsuario', {
       usuario: {
         ...usuario,
         seguidores,
@@ -90,10 +101,7 @@ const mostrarPerfil = async (req, res) => {
     const albumes = await album.obtenerConPortada(usuario.idUsuario);
     const seguidores = await Usuario.obtenerSeguidores(usuario.idUsuario);
     const seguidos = await Usuario.obtenerSeguidos(usuario.idUsuario);
-    console.log(usuario)
-    console.log(seguidores)
-    console.log(seguidos)
-    console.log(albumes)
+
     res.render('perfil', {
       usuario: {
         ...usuario,

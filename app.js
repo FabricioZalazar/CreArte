@@ -31,7 +31,6 @@ app.get('/', (req, res) => {
   if (!req.session.usuario) {
     return res.render('login');
   }
-  console.log('entra bien / ')
   res.redirect('/perfil');
 });
 

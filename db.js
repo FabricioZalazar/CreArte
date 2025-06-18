@@ -5,9 +5,8 @@ import mysql from 'mysql2'
   user: 'root',
   password: '',
   database: 'fabriciozalazar_bd_artesanos_labii'
-
-}).promise();
- */
+}).promise(); 
+*/
 
  const connection = mysql.createConnection({
   host: 'mysql-fabriciozalazar.alwaysdata.net',

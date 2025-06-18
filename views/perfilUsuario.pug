@@ -3,11 +3,10 @@ extends layout
 block content
   nav.navbar.navbar-expand-lg.navbar-light.bg-light.px-4
     a.navbar-brand(href="/perfil") Artesanos.com
-
-    form.d-flex.ms-auto(action="/buscar", method="GET")
-      input.form-control.me-2(type="search", name="q", placeholder="Buscar usuarios", aria-label="Buscar")
-      button.btn.btn-outline-success(type="submit") Buscar
-
+    .ms-auto
+      button.btn.btn-outline-primary.me-2(type="button", data-bs-toggle="modal", data-bs-target="#modalBuscarUsuario")
+        i.fas.fa-search
+        |  Buscar
     a.btn.btn-outline-danger.ms-3(href="/logout") Cerrar sesión
 
   .container.py-5
@@ -142,3 +141,16 @@ block content
                     textarea.form-control(name="txt", id="txtComentario", rows="3", placeholder="Escribí tu comentario...")
                     button.btn.btn-primary.mt-2(type="submit") Enviar
 
+  // Modal buscar usuario
+  .modal.fade(id="modalBuscarUsuario", tabindex="-1", aria-labelledby="modalBuscarUsuarioLabel", aria-hidden="true")
+    .modal-dialog.modal-dialog-centered
+      .modal-content
+        .modal-header
+          h5.modal-title#modalBuscarUsuarioLabel Buscar usuarios
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Cerrar")
+        .modal-body
+          form#formBuscarUsuario
+            input.form-control.mb-3(type="text", id="inputBuscarUsuario", name="termino", placeholder="Nombre o apellido...", required)
+            button.btn.btn-primary.w-100(type="submit") Buscar
+          hr
+          ul#resultadoBusqueda.list-group

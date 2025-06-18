@@ -23,10 +23,12 @@ router.post('/usuario/seguir', verificarLogin, async (req, res) => {
 router.post('/usuario/dejar-seguir', verificarLogin, async (req, res) => {
   const idSeguidor = req.session.usuario.idUsuario;
   const idSeguido = req.body.idSeguido;
-
+  
   await Usuario.dejarDeSeguir(idSeguidor, idSeguido);
   res.redirect(`/usuario/${idSeguido}`);
 });
+
+
 router.get('/usuario/:id', verificarLogin, usuarioController.mostrarPerfilAjeno);
 router.post('/album/crear', verificarLogin,uploadCloud.array('imagenes'), albumController.crearAlbum);
 router.post('/album/borrar', albumController.borrarAlbum);
